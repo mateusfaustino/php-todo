@@ -1,141 +1,323 @@
 #!/usr/bin/env php
 <?php
 
-use App\Entity\Address;
-use App\Entity\EducationalPlan;
-use App\Entity\MonthlyFee;
-use App\Entity\Student;
-use App\Entity\Teacher;
+declare(strict_types=1);
+
+use App\Entity\User;
+use App\Entity\Project;
+use App\Entity\TodoList;
+use App\Entity\Task;
+use App\Entity\Subtask;
+use App\Entity\Tag;
+use App\Entity\Comment;
+use App\Entity\Attachment;
+use App\Entity\Reminder;
+use App\Entity\Notification;
+use App\Enum\TaskStatusEnum;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 $entityManager = require dirname(__DIR__) . '/doctrine.php';
 
+echo "=== Iniciando carga de dados do sistema TODO ===" . PHP_EOL . PHP_EOL;
 
+// ========================================
+// 1. Inserir Usuários
+// ========================================
+echo "1. Inserindo usuários..." . PHP_EOL;
+$usersData = include 'DataFixtures/users.php';
+$users = [];
 
-$plans = include 'DataFixtures/plans.php';
-
-foreach ($plans as $data) {
-    $plan = new EducationalPlan();
-    $plan->setName($data['name']);
-    $plan->setValue($data['value']);
-    $plan->setStatus($data['status']);
+foreach ($usersData as $data) {
+    $passwordHash = password_hash($data['password'], PASSWORD_BCRYPT);
     
-    // Definir data de início (obrigatório)
-    $startDate = isset($data['startDate']) ? new DateTime($data['startDate']) : new DateTime();
-    $plan->setStartDate($startDate);
+    $user = new User(
+        $data['name'],
+        $data['email'],
+        $passwordHash,
+        $data['timezone']
+    );
+
+    $entityManager->persist($user);
+    $users[] = $user;
+    echo "  - Inserindo usuário: {$data['name']}" . PHP_EOL;
+}
+
+$entityManager->flush();
+echo "  ✓ {count($users)} usuários inseridos com sucesso!" . PHP_EOL . PHP_EOL;
+
+// ========================================
+// 2. Inserir Projetos
+// ========================================
+echo "2. Inserindo projetos..." . PHP_EOL;
+$projectsData = include 'DataFixtures/projects.php';
+$projects = [];
+
+foreach ($projectsData as $data) {
+    $randomUser = $users[array_rand($users)];
     
-    // Definir data de término (opcional)
-    if (isset($data['endDate'])) {
-        $plan->setEndDate(new DateTime($data['endDate']));
+    $project = new Project(
+        $randomUser,
+        $data['name'],
+        $data['color']
+    );
+    
+    if (isset($data['description'])) {
+        $project->setDescription($data['description']);
+    }
+
+    $entityManager->persist($project);
+    $projects[] = $project;
+    echo "  - Inserindo projeto: {$data['name']}" . PHP_EOL;
+}
+
+$entityManager->flush();
+echo "  ✓ " . count($projects) . " projetos inseridos com sucesso!" . PHP_EOL . PHP_EOL;
+
+// ========================================
+// 3. Inserir Listas
+// ========================================
+echo "3. Inserindo listas..." . PHP_EOL;
+$listsData = include 'DataFixtures/lists.php';
+$lists = [];
+
+foreach ($listsData as $data) {
+    $randomUser = $users[array_rand($users)];
+    $randomProject = rand(0, 1) ? $projects[array_rand($projects)] : null;
+    
+    $list = new TodoList(
+        $randomUser,
+        $data['name'],
+        $data['order']
+    );
+    
+    if ($randomProject) {
+        $list->setProject($randomProject);
+    }
+
+    $entityManager->persist($list);
+    $lists[] = $list;
+    echo "  - Inserindo lista: {$data['name']}" . PHP_EOL;
+}
+
+$entityManager->flush();
+echo "  ✓ " . count($lists) . " listas inseridas com sucesso!" . PHP_EOL . PHP_EOL;
+
+// ========================================
+// 4. Inserir Tags
+// ========================================
+echo "4. Inserindo tags..." . PHP_EOL;
+$tagsData = include 'DataFixtures/tags.php';
+$tags = [];
+
+foreach ($tagsData as $data) {
+    $randomUser = $users[array_rand($users)];
+    
+    $tag = new Tag(
+        $randomUser,
+        $data['name'],
+        $data['color']
+    );
+
+    $entityManager->persist($tag);
+    $tags[] = $tag;
+    echo "  - Inserindo tag: {$data['name']}" . PHP_EOL;
+}
+
+$entityManager->flush();
+echo "  ✓ " . count($tags) . " tags inseridas com sucesso!" . PHP_EOL . PHP_EOL;
+
+// ========================================
+// 5. Inserir Tarefas
+// ========================================
+echo "5. Inserindo tarefas..." . PHP_EOL;
+$tasksData = include 'DataFixtures/tasks.php';
+$tasks = [];
+
+foreach ($tasksData as $data) {
+    $randomList = $lists[array_rand($lists)];
+    
+    $task = new Task(
+        $randomList,
+        $data['title'],
+        $data['priority'],
+        $data['order']
+    );
+    
+    if (isset($data['description'])) {
+        $task->setDescription($data['description']);
     }
     
-    $plan->setUpdatedAt(new DateTime());
-    $plan->setCreatedAt(new DateTime());
-
-    $entityManager->persist($plan);
-    echo "Inserindo novo plano para testes..." . PHP_EOL;
-}
-
-// Inserir endereços
-$addressesData = include 'DataFixtures/address.php';
-$addresses = [];
-
-foreach ($addressesData as $data) {
-    $address = new Address();
-    $address->fill($data);
+    if (isset($data['startDate'])) {
+        $task->setStartDate($data['startDate']);
+    }
     
-    $entityManager->persist($address);
-    $addresses[] = $address;
-    echo "Inserindo novo endereço para testes..." . PHP_EOL;
-}
-
-$entityManager->flush();
-
-// Inserir responsáveis
-$responsiblesData = include 'DataFixtures/responsible.php';
-$responsibles = [];
-
-foreach ($responsiblesData as $data) {
-    $responsible = new \App\Entity\StudentResponsible();
-    $responsible->setName($data['name']);
-    $responsible->setDocument($data['document']);
-    $responsible->setPhone($data['phone']);
-    $responsible->setEmail($data['email']);
+    if (isset($data['dueDate'])) {
+        $task->setDueDate($data['dueDate']);
+    }
     
-    // Selecionar um endereço aleatório para o responsável
-    $randomAddress = $addresses[array_rand($addresses)];
-    $responsible->setAddress($randomAddress);
+    // Adicionar tags aleatórias (1-3 tags por tarefa)
+    $numTags = rand(1, 3);
+    $randomTags = array_rand($tags, min($numTags, count($tags)));
+    if (!is_array($randomTags)) {
+        $randomTags = [$randomTags];
+    }
     
-    $entityManager->persist($responsible);
-    $responsibles[] = $responsible;
-    echo "Inserindo novo responsável para testes..." . PHP_EOL;
+    foreach ($randomTags as $tagIndex) {
+        $task->addTag($tags[$tagIndex]);
+    }
+
+    $entityManager->persist($task);
+    $tasks[] = $task;
+    echo "  - Inserindo tarefa: {$data['title']}" . PHP_EOL;
 }
 
 $entityManager->flush();
+echo "  ✓ " . count($tasks) . " tarefas inseridas com sucesso!" . PHP_EOL . PHP_EOL;
 
-$students = include 'DataFixtures/student.php';
+// ========================================
+// 6. Inserir Subtarefas
+// ========================================
+echo "6. Inserindo subtarefas..." . PHP_EOL;
+$subtasksData = include 'DataFixtures/subtasks.php';
+$subtasks = [];
 
-foreach ($students as $data) {
-    // Selecionar um endereço e responsável aleatórios
-    $randomAddress = $addresses[array_rand($addresses)];
-    $randomResponsible = $responsibles[array_rand($responsibles)];
+foreach ($subtasksData as $data) {
+    $randomTask = $tasks[array_rand($tasks)];
     
-    $student = new Student(
-        $data['name'],
-        $data['birth'],
-        $data['cpf'],
-        $data['phone'],
-        $data['notes'],
-        $randomAddress,
-        $randomResponsible
+    $subtask = new Subtask(
+        $randomTask,
+        $data['title'],
+        $data['order']
+    );
+    
+    $subtask->setCompleted($data['completed']);
+
+    $entityManager->persist($subtask);
+    $subtasks[] = $subtask;
+    echo "  - Inserindo subtarefa: {$data['title']}" . PHP_EOL;
+}
+
+$entityManager->flush();
+echo "  ✓ " . count($subtasks) . " subtarefas inseridas com sucesso!" . PHP_EOL . PHP_EOL;
+
+// ========================================
+// 7. Inserir Comentários
+// ========================================
+echo "7. Inserindo comentários..." . PHP_EOL;
+$commentsData = include 'DataFixtures/comments.php';
+$comments = [];
+
+foreach ($commentsData as $data) {
+    $randomTask = $tasks[array_rand($tasks)];
+    $randomUser = $users[array_rand($users)];
+    
+    $comment = new Comment(
+        $randomTask,
+        $randomUser,
+        $data['content']
     );
 
-    $entityManager->persist($student);
-    echo "Inserindo novo aluno para testes..." . PHP_EOL;
+    $entityManager->persist($comment);
+    $comments[] = $comment;
+    echo "  - Inserindo comentário" . PHP_EOL;
 }
 
-
 $entityManager->flush();
+echo "  ✓ " . count($comments) . " comentários inseridos com sucesso!" . PHP_EOL . PHP_EOL;
 
-$studentsAll = $entityManager->getRepository(Student::class)->findAll();
+// ========================================
+// 8. Inserir Anexos
+// ========================================
+echo "8. Inserindo anexos..." . PHP_EOL;
+$attachmentsData = include 'DataFixtures/attachments.php';
+$attachments = [];
 
-$monthlyfees = include 'DataFixtures/monthlyfee.php';
-foreach ($monthlyfees as $data) {
-    $randomStudent = $studentsAll[array_rand($studentsAll)];
-    $fee = new MonthlyFee(
-            $data['value'],
-            $randomStudent,
-            $data['dueDate'],
-            $data['billingPeriod'],
+foreach ($attachmentsData as $data) {
+    $randomTask = $tasks[array_rand($tasks)];
+    $randomUser = $users[array_rand($users)];
+    
+    $attachment = new Attachment(
+        $randomTask,
+        $randomUser,
+        $data['fileName'],
+        $data['mimeType'],
+        $data['sizeBytes'],
+        $data['storageUrl']
     );
 
-    $fee->setPaid($data['paid']);
-    //$student->setUpdatedAt(new DateTime());
-    //$student->setCreatedAt(new DateTime());
-
-    $entityManager->persist($fee);
-    echo "Inserindo novo mensalidade para testes..." . PHP_EOL;
+    $entityManager->persist($attachment);
+    $attachments[] = $attachment;
+    echo "  - Inserindo anexo: {$data['fileName']}" . PHP_EOL;
 }
-
-$teachers = include 'DataFixtures/teachers.php';
-
-foreach ($teachers as $data) {
-    $teacher = new Teacher();
-
-    $teacher->setName($data['name']);
-    $teacher->setShifts($data['shifts']);
-    $teacher->setCpf($data['cpf']);
-    $teacher->setCategory($data['category']);
-
-    $address = new Address();
-    $address->fill($data['address']); //preencher
-
-    $teacher->setAddress($address);
-
-    $entityManager->persist($teacher);
-    echo "Inserindo novo professor para testes..." . PHP_EOL;
-}
-
 
 $entityManager->flush();
+echo "  ✓ " . count($attachments) . " anexos inseridos com sucesso!" . PHP_EOL . PHP_EOL;
+
+// ========================================
+// 9. Inserir Lembretes
+// ========================================
+echo "9. Inserindo lembretes..." . PHP_EOL;
+$remindersData = include 'DataFixtures/reminders.php';
+$reminders = [];
+
+foreach ($remindersData as $data) {
+    $randomTask = $tasks[array_rand($tasks)];
+    
+    $reminder = new Reminder(
+        $randomTask,
+        $data['reminderDateTime'],
+        $data['channel']
+    );
+
+    $entityManager->persist($reminder);
+    $reminders[] = $reminder;
+    echo "  - Inserindo lembrete: {$data['reminderDateTime']->format('Y-m-d H:i:s')}" . PHP_EOL;
+}
+
+$entityManager->flush();
+echo "  ✓ " . count($reminders) . " lembretes inseridos com sucesso!" . PHP_EOL . PHP_EOL;
+
+// ========================================
+// 10. Inserir Notificações
+// ========================================
+echo "10. Inserindo notificações..." . PHP_EOL;
+$notificationsData = include 'DataFixtures/notifications.php';
+$notifications = [];
+
+foreach ($notificationsData as $data) {
+    $randomUser = $users[array_rand($users)];
+    
+    $notification = new Notification(
+        $randomUser,
+        $data['type'],
+        $data['title'],
+        $data['message']
+    );
+
+    $entityManager->persist($notification);
+    $notifications[] = $notification;
+    echo "  - Inserindo notificação: {$data['title']}" . PHP_EOL;
+}
+
+$entityManager->flush();
+echo "  ✓ " . count($notifications) . " notificações inseridas com sucesso!" . PHP_EOL . PHP_EOL;
+
+// ========================================
+// Resumo Final
+// ========================================
+echo "======================================" . PHP_EOL;
+echo "🎉 CARGA DE DADOS CONCLUÍDA COM SUCESSO!" . PHP_EOL;
+echo "======================================" . PHP_EOL;
+echo "Total de registros inseridos:" . PHP_EOL;
+echo "  • Usuários: " . count($users) . PHP_EOL;
+echo "  • Projetos: " . count($projects) . PHP_EOL;
+echo "  • Listas: " . count($lists) . PHP_EOL;
+echo "  • Tags: " . count($tags) . PHP_EOL;
+echo "  • Tarefas: " . count($tasks) . PHP_EOL;
+echo "  • Subtarefas: " . count($subtasks) . PHP_EOL;
+echo "  • Comentários: " . count($comments) . PHP_EOL;
+echo "  • Anexos: " . count($attachments) . PHP_EOL;
+echo "  • Lembretes: " . count($reminders) . PHP_EOL;
+echo "  • Notificações: " . count($notifications) . PHP_EOL;
+echo "======================================" . PHP_EOL;

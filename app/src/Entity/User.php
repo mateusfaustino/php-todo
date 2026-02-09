@@ -4,47 +4,75 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Enum\UserStatusEnum;
+use App\Trait\UuidTrait;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+#[ORM\Entity]
+#[ORM\Table(name: 'users')]
 class User
 {
+    use UuidTrait;
+    #[ORM\Id]
+    #[ORM\Column(type: 'guid')]
+    private string $id;
 
-    private int $id;
-
+    #[ORM\Column(type: 'string', length: 255)]
     private string $name;
 
+    #[ORM\Column(type: 'string', length: 255, unique: true)]
     private string $email;
 
-    private string $password;
+    #[ORM\Column(type: 'string', length: 255, name: 'password_hash')]
+    private string $passwordHash;
 
-    private string $document;
+    #[ORM\Column(type: 'string', length: 50, name: 'timezone')]
+    private string $timezone;
 
-    private string $phone;
-
-    private UserStatusEnum $status;
-
+    #[ORM\Column(type: 'datetime', name: 'created_at')]
     private DateTime $createdAt;
 
-    private DateTime $updatedAt;
+    #[ORM\OneToMany(targetEntity: Project::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private Collection $projects;
+
+    #[ORM\OneToMany(targetEntity: TodoList::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private Collection $lists;
+
+    #[ORM\OneToMany(targetEntity: Tag::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private Collection $tags;
+
+    #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private Collection $comments;
+
+    #[ORM\OneToMany(targetEntity: Attachment::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private Collection $attachments;
+
+    #[ORM\OneToMany(targetEntity: Notification::class, mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private Collection $notifications;
 
     public function __construct(
         string $name,
         string $email,
-        string $document,
-        string $phone
+        string $passwordHash,
+        string $timezone = 'UTC'
     ) {
+        $this->id = $this->generateUuid();
         $this->name = $name;
         $this->email = $email;
-        $this->document = $document;
-        $this->phone = $phone;
-        $this->status = UserStatusEnum::INACTIVE;
+        $this->passwordHash = $passwordHash;
+        $this->timezone = $timezone;
         $this->createdAt = new DateTime();
-        $this->updatedAt = new DateTime();
+        $this->projects = new ArrayCollection();
+        $this->lists = new ArrayCollection();
+        $this->tags = new ArrayCollection();
+        $this->comments = new ArrayCollection();
+        $this->attachments = new ArrayCollection();
+        $this->notifications = new ArrayCollection();
     }
 
-    public function getId(): int
+    public function getId(): string
     {
         return $this->id;
     }
@@ -57,7 +85,6 @@ class User
     public function setName(string $name): void
     {
         $this->name = $name;
-        $this->updateTimestamps();
     }
 
     public function getEmail(): string
@@ -68,66 +95,26 @@ class User
     public function setEmail(string $email): void
     {
         $this->email = $email;
-        $this->updateTimestamps();
     }
 
-    public function getDocument(): string
+    public function getPasswordHash(): string
     {
-        return $this->document;
+        return $this->passwordHash;
     }
 
-    public function setDocument(string $document): void
+    public function setPasswordHash(string $passwordHash): void
     {
-        $this->document = $document;
-        $this->updateTimestamps();
+        $this->passwordHash = $passwordHash;
     }
 
-    public function getPhone(): string
+    public function getTimezone(): string
     {
-        return $this->phone;
+        return $this->timezone;
     }
 
-    public function setPhone(string $phone): void
+    public function setTimezone(string $timezone): void
     {
-        $this->phone = $phone;
-        $this->updateTimestamps();
-    }
-
-    public function getPassword(): string
-    {
-        return $this->password;
-    }
-
-    public function setPassword(string $password): void
-    {
-        $this->password = $password;
-    }
-
-    public function getStatus(): UserStatusEnum
-    {
-        return $this->status;
-    }
-
-    public function setStatus(UserStatusEnum $status): void
-    {
-        $this->status = $status;
-    }
-
-    public function isActive(): bool
-    {
-        return UserStatusEnum::ACTIVE === $this->status;
-    }
-
-    public function activate(): void
-    {
-        $this->status = UserStatusEnum::ACTIVE;
-        $this->updateTimestamps();
-    }
-
-    public function deactivate(): void
-    {
-        $this->status = UserStatusEnum::INACTIVE;
-        $this->updateTimestamps();
+        $this->timezone = $timezone;
     }
 
     public function getCreatedAt(): DateTime
@@ -135,14 +122,142 @@ class User
         return $this->createdAt;
     }
 
-    public function getUpdatedAt(): DateTime
+    /**
+     * @return Collection<int, Project>
+     */
+    public function getProjects(): Collection
     {
-        return $this->updatedAt;
+        return $this->projects;
     }
 
-    public function setUpdatedAt(DateTime $datetime): void
+    public function addProject(Project $project): void
     {
-        $this->updatedAt = $datetime;
+        if (!$this->projects->contains($project)) {
+            $this->projects->add($project);
+            $project->setUser($this);
+        }
+    }
+
+    public function removeProject(Project $project): void
+    {
+        if ($this->projects->contains($project)) {
+            $this->projects->removeElement($project);
+        }
+    }
+
+    /**
+     * @return Collection<int, TodoList>
+     */
+    public function getLists(): Collection
+    {
+        return $this->lists;
+    }
+
+    public function addList(TodoList $list): void
+    {
+        if (!$this->lists->contains($list)) {
+            $this->lists->add($list);
+            $list->setUser($this);
+        }
+    }
+
+    public function removeList(TodoList $list): void
+    {
+        if ($this->lists->contains($list)) {
+            $this->lists->removeElement($list);
+        }
+    }
+
+    /**
+     * @return Collection<int, Tag>
+     */
+    public function getTags(): Collection
+    {
+        return $this->tags;
+    }
+
+    public function addTag(Tag $tag): void
+    {
+        if (!$this->tags->contains($tag)) {
+            $this->tags->add($tag);
+            $tag->setUser($this);
+        }
+    }
+
+    public function removeTag(Tag $tag): void
+    {
+        if ($this->tags->contains($tag)) {
+            $this->tags->removeElement($tag);
+        }
+    }
+
+    /**
+     * @return Collection<int, Comment>
+     */
+    public function getComments(): Collection
+    {
+        return $this->comments;
+    }
+
+    public function addComment(Comment $comment): void
+    {
+        if (!$this->comments->contains($comment)) {
+            $this->comments->add($comment);
+            $comment->setUser($this);
+        }
+    }
+
+    public function removeComment(Comment $comment): void
+    {
+        if ($this->comments->contains($comment)) {
+            $this->comments->removeElement($comment);
+        }
+    }
+
+    /**
+     * @return Collection<int, Attachment>
+     */
+    public function getAttachments(): Collection
+    {
+        return $this->attachments;
+    }
+
+    public function addAttachment(Attachment $attachment): void
+    {
+        if (!$this->attachments->contains($attachment)) {
+            $this->attachments->add($attachment);
+            $attachment->setUser($this);
+        }
+    }
+
+    public function removeAttachment(Attachment $attachment): void
+    {
+        if ($this->attachments->contains($attachment)) {
+            $this->attachments->removeElement($attachment);
+        }
+    }
+
+    /**
+     * @return Collection<int, Notification>
+     */
+    public function getNotifications(): Collection
+    {
+        return $this->notifications;
+    }
+
+    public function addNotification(Notification $notification): void
+    {
+        if (!$this->notifications->contains($notification)) {
+            $this->notifications->add($notification);
+            $notification->setUser($this);
+        }
+    }
+
+    public function removeNotification(Notification $notification): void
+    {
+        if ($this->notifications->contains($notification)) {
+            $this->notifications->removeElement($notification);
+        }
     }
 
     public function setCreatedAt(DateTime $datetime): void
@@ -152,15 +267,10 @@ class User
 
     public function getShortName(): string
     {
-        $partes = preg_split('/\s+/', trim($this->name));
-        $primeiro = $partes[0] ?? '';
-        $ultimo = count($partes) > 1 ? $partes[count($partes) - 1] : '';
+        $parts = preg_split('/\s+/', trim($this->name));
+        $first = $parts[0] ?? '';
+        $last = count($parts) > 1 ? $parts[count($parts) - 1] : '';
 
-        return trim($primeiro.' '.$ultimo);
-    }
-
-    private function updateTimestamps(): void
-    {
-        $this->updatedAt = new DateTime();
+        return trim($first.' '.$last);
     }
 }

@@ -14,10 +14,10 @@ $config = ORMSetup::createAttributeMetadataConfiguration(
 );
 
 $connection = DriverManager::getConnection([
-    'dbname' => 'db_swim',
+    'dbname' => 'db_todo',
     'user' => 'root',
     'password' => 'root',
-    'host' => 'setup-swim_mysql',
+    'host' => 'setup-todo_mysql',
     'driver' => 'pdo_mysql',
 ], $config);
 

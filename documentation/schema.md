@@ -23,9 +23,7 @@ classDiagram
         + fuso_horario: string
         + criado_em: DateTime
 
-        criarLista()
-        criarTarefa()
-        concluirTarefa()
+
     }
 
     class Projeto {
@@ -69,10 +67,9 @@ classDiagram
         + criado_em: DateTime
         + atualizado_em: DateTime
 
-        criar()
-        editar()
-        concluir()
-        reagendar()
+        
+        concluirTarefa()
+        reagendarTarefa()
     }
 
     class Subtarefa {
@@ -83,8 +80,8 @@ classDiagram
         + ordem: int
         + criado_em: DateTime
 
-        concluir()
-        reordenar()
+        concluirSubtarefa()
+        reordenarSubtarefa()
     }
 
     class Tag {
@@ -109,8 +106,8 @@ classDiagram
         + criado_em: DateTime
         + editado_em: DateTime
 
-        editar()
-        remover()
+        editarComentario()
+        removerComentario()
     }
 
     class Anexo {

@@ -1,0 +1,141 @@
+#!/usr/bin/env php
+<?php
+
+use App\Entity\Address;
+use App\Entity\EducationalPlan;
+use App\Entity\MonthlyFee;
+use App\Entity\Student;
+use App\Entity\Teacher;
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+$entityManager = require dirname(__DIR__) . '/doctrine.php';
+
+
+
+$plans = include 'DataFixtures/plans.php';
+
+foreach ($plans as $data) {
+    $plan = new EducationalPlan();
+    $plan->setName($data['name']);
+    $plan->setValue($data['value']);
+    $plan->setStatus($data['status']);
+    
+    // Definir data de início (obrigatório)
+    $startDate = isset($data['startDate']) ? new DateTime($data['startDate']) : new DateTime();
+    $plan->setStartDate($startDate);
+    
+    // Definir data de término (opcional)
+    if (isset($data['endDate'])) {
+        $plan->setEndDate(new DateTime($data['endDate']));
+    }
+    
+    $plan->setUpdatedAt(new DateTime());
+    $plan->setCreatedAt(new DateTime());
+
+    $entityManager->persist($plan);
+    echo "Inserindo novo plano para testes..." . PHP_EOL;
+}
+
+// Inserir endereços
+$addressesData = include 'DataFixtures/address.php';
+$addresses = [];
+
+foreach ($addressesData as $data) {
+    $address = new Address();
+    $address->fill($data);
+    
+    $entityManager->persist($address);
+    $addresses[] = $address;
+    echo "Inserindo novo endereço para testes..." . PHP_EOL;
+}
+
+$entityManager->flush();
+
+// Inserir responsáveis
+$responsiblesData = include 'DataFixtures/responsible.php';
+$responsibles = [];
+
+foreach ($responsiblesData as $data) {
+    $responsible = new \App\Entity\StudentResponsible();
+    $responsible->setName($data['name']);
+    $responsible->setDocument($data['document']);
+    $responsible->setPhone($data['phone']);
+    $responsible->setEmail($data['email']);
+    
+    // Selecionar um endereço aleatório para o responsável
+    $randomAddress = $addresses[array_rand($addresses)];
+    $responsible->setAddress($randomAddress);
+    
+    $entityManager->persist($responsible);
+    $responsibles[] = $responsible;
+    echo "Inserindo novo responsável para testes..." . PHP_EOL;
+}
+
+$entityManager->flush();
+
+$students = include 'DataFixtures/student.php';
+
+foreach ($students as $data) {
+    // Selecionar um endereço e responsável aleatórios
+    $randomAddress = $addresses[array_rand($addresses)];
+    $randomResponsible = $responsibles[array_rand($responsibles)];
+    
+    $student = new Student(
+        $data['name'],
+        $data['birth'],
+        $data['cpf'],
+        $data['phone'],
+        $data['notes'],
+        $randomAddress,
+        $randomResponsible
+    );
+
+    $entityManager->persist($student);
+    echo "Inserindo novo aluno para testes..." . PHP_EOL;
+}
+
+
+$entityManager->flush();
+
+$studentsAll = $entityManager->getRepository(Student::class)->findAll();
+
+$monthlyfees = include 'DataFixtures/monthlyfee.php';
+foreach ($monthlyfees as $data) {
+    $randomStudent = $studentsAll[array_rand($studentsAll)];
+    $fee = new MonthlyFee(
+            $data['value'],
+            $randomStudent,
+            $data['dueDate'],
+            $data['billingPeriod'],
+    );
+
+    $fee->setPaid($data['paid']);
+    //$student->setUpdatedAt(new DateTime());
+    //$student->setCreatedAt(new DateTime());
+
+    $entityManager->persist($fee);
+    echo "Inserindo novo mensalidade para testes..." . PHP_EOL;
+}
+
+$teachers = include 'DataFixtures/teachers.php';
+
+foreach ($teachers as $data) {
+    $teacher = new Teacher();
+
+    $teacher->setName($data['name']);
+    $teacher->setShifts($data['shifts']);
+    $teacher->setCpf($data['cpf']);
+    $teacher->setCategory($data['category']);
+
+    $address = new Address();
+    $address->fill($data['address']); //preencher
+
+    $teacher->setAddress($address);
+
+    $entityManager->persist($teacher);
+    echo "Inserindo novo professor para testes..." . PHP_EOL;
+}
+
+
+$entityManager->flush();

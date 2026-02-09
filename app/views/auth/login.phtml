@@ -1,0 +1,129 @@
+<section class="login-bg d-flex align-items-center justify-content-center min-vh-100 w-100">
+  <div class="login-card card border-0 shadow-lg p-4 mx-auto">
+    <div class="text-center mb-3">
+      <!-- Substitua o ícone do usuário -->
+      <span class="material-icons icon-login" style="font-size: 2.5rem; color: #0D6EFD;">person</span>
+    </div>
+    <h2 class="text-center fw-bold mb-2 text-primary">Bem-vindo!</h2>
+    <p class="text-center text-secondary mb-4 subtitle-login">Entre com sua conta para acessar o sistema</p>
+    <form id="loginForm" novalidate autocomplete="off">
+      <div class="form-floating-icon mb-4">
+        <input type="email" id="email" name="email" class="form-control form-control-lg" placeholder=" " required autocomplete="username">
+        <label for="email">
+          <!-- Substitua o ícone de e-mail -->
+          <span class="material-icons me-2" style="vertical-align: middle;">mail</span>E-mail
+        </label>
+        <div class="invalid-feedback">
+          Por favor, insira um e-mail válido.
+        </div>
+      </div>
+      <div class="form-floating-icon mb-4">
+        <input type="password" id="password" name="password" class="form-control form-control-lg" placeholder=" " required minlength="4" autocomplete="current-password">
+        <label for="password">
+          <!-- Substitua o ícone de senha -->
+          <span class="material-icons me-2" style="vertical-align: middle;">lock</span>Senha
+        </label>
+        <button class="btn btn-eye" type="button" id="togglePassword" tabindex="-1">
+          <!-- Substitua o ícone de olho -->
+          <span class="material-icons" id="eyeIcon">visibility</span>
+        </button>
+        <div class="invalid-feedback">
+          Por favor, insira uma senha válida (mínimo 4 caracteres).
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary w-100 btn-lg rounded-3 mt-2 shadow-sm">Entrar</button>
+      <div class="mt-4 text-center small">
+        <a href="#" data-bs-toggle="modal" data-bs-target="#recuperarSenhaModal" class="text-decoration-none">Esqueceu a senha?</a>
+        <span class="mx-2 text-muted">|</span>
+        <a href="/usuarios/adicionar" class="text-decoration-none">Criar conta</a>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- Modal de recuperação de senha -->
+<div class="modal fade" id="recuperarSenhaModal" tabindex="-1" aria-labelledby="recuperarSenhaModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content rounded-4">
+      <div class="modal-header">
+        <h1 class=" text-primary modal-title fs-5">Recuperar senha</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-floating-icon">
+          <input type="email" id="recuperarEmail" class="form-control" placeholder=" ">
+          <label for="recuperarEmail">
+            <!-- Substitua o ícone de e-mail -->
+            <span class="material-icons me-2" style="vertical-align: middle;">mail</span>E-mail para recuperação
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        <button type="button" class="btn btn-primary">Enviar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  html, body {
+    height: 100%;
+    min-width: 100vw;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  // Validação Bootstrap customizada melhorada
+  (function () {
+    'use strict';
+    var form = document.getElementById('loginForm');
+    var email = document.getElementById('email');
+    var password = document.getElementById('password');
+
+    // Remove is-invalid ao digitar
+    [email, password].forEach(function(input) {
+      input.addEventListener('input', function() {
+        input.classList.remove('is-invalid');
+      });
+    });
+
+    form.addEventListener('submit', function (event) {
+      var valid = true;
+
+      // Validação de e-mail
+      if (!email.value || !email.checkValidity()) {
+        email.classList.add('is-invalid');
+        valid = false;
+      }
+
+      // Validação de senha
+      if (!password.value || password.value.length < 4) {
+        password.classList.add('is-invalid');
+        valid = false;
+      }
+
+      if (!valid) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+
+      form.classList.add('was-validated');
+    }, false);
+  })();
+
+  // Exibir/ocultar senha com Material Icons
+  document.getElementById('togglePassword').addEventListener('click', function () {
+    var passwordInput = document.getElementById('password');
+    var eyeIcon = document.getElementById('eyeIcon');
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      eyeIcon.textContent = 'visibility_off';
+    } else {
+      passwordInput.type = 'password';
+      eyeIcon.textContent = 'visibility';
+    }
+  });
+</script>

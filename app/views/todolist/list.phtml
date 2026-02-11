@@ -1,0 +1,133 @@
+<?php
+/**
+ * TodoList List View
+ * Displays all todo lists with filtering and actions
+ */
+?>
+<section class="container my-5">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+        <div>
+            <h1 class="d-flex align-items-center gap-2 mb-1">
+                <span class="material-icons fs-1">list</span>
+                Lists
+            </h1>
+            <p class="text-muted mb-0">Organize your tasks into lists</p>
+        </div>
+        <a href="/lists/create" class="btn btn-primary d-flex align-items-center gap-2">
+            <span class="material-icons">add</span>
+            New List
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm bg-primary bg-opacity-10">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="bg-primary bg-opacity-25 rounded-circle p-3">
+                        <span class="material-icons text-primary fs-3">list</span>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1">Total Lists</h6>
+                        <h3 class="mb-0"><?= $totalCount ?? 0 ?></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm bg-success bg-opacity-10">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="bg-success bg-opacity-25 rounded-circle p-3">
+                        <span class="material-icons text-success fs-3">check_circle</span>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1">Active</h6>
+                        <h3 class="mb-0"><?= $activeCount ?? 0 ?></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-4">
+            <div class="card border-0 shadow-sm bg-secondary bg-opacity-10">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="bg-secondary bg-opacity-25 rounded-circle p-3">
+                        <span class="material-icons text-secondary fs-3">archive</span>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1">Archived</h6>
+                        <h3 class="mb-0"><?= $archivedCount ?? 0 ?></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lists Grid -->
+    <div class="row g-4">
+        <?php if (empty($lists)): ?>
+            <div class="col-12">
+                <div class="card border-0 shadow text-center py-5">
+                    <div class="card-body">
+                        <span class="material-icons text-muted" style="font-size: 4rem;">list_alt</span>
+                        <h5 class="mt-3 text-muted">No lists found</h5>
+                        <p class="text-muted">Create your first list to get started</p>
+                        <a href="/lists/create" class="btn btn-primary">Create List</a>
+                    </div>
+                </div>
+            </div>
+        <?php else: ?>
+            <?php foreach ($lists as $list): ?>
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card border-0 shadow h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="material-icons text-primary">list</span>
+                                    <h5 class="card-title mb-0"><?= htmlspecialchars($list->getName()) ?></h5>
+                                </div>
+                                <?php if ($list->isArchived()): ?>
+                                    <span class="badge bg-secondary">Archived</span>
+                                <?php else: ?>
+                                    <span class="badge bg-success">Active</span>
+                                <?php endif; ?>
+                            </div>
+
+                            <p class="text-muted mb-3">
+                                <span class="material-icons fs-6">task</span>
+                                <?= $list->getTasks()->count() ?> tasks
+                            </p>
+
+                            <?php if ($list->getProject()): ?>
+                                <p class="text-muted mb-3">
+                                    <span class="material-icons fs-6">folder</span>
+                                    <?= htmlspecialchars($list->getProject()->getName()) ?>
+                                </p>
+                            <?php endif; ?>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">Order: <?= $list->getOrder() ?></small>
+                                <div class="btn-group">
+                                    <a href="/lists/show?id=<?= $list->getId() ?>" class="btn btn-sm btn-outline-primary" title="View">
+                                        <span class="material-icons fs-6">visibility</span>
+                                    </a>
+                                    <a href="/lists/edit?id=<?= $list->getId() ?>" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                        <span class="material-icons fs-6">edit</span>
+                                    </a>
+                                    <?php if ($list->isArchived()): ?>
+                                        <a href="/lists/unarchive?id=<?= $list->getId() ?>" class="btn btn-sm btn-outline-success" title="Unarchive">
+                                            <span class="material-icons fs-6">unarchive</span>
+                                        </a>
+                                    <?php else: ?>
+                                        <a href="/lists/archive?id=<?= $list->getId() ?>" class="btn btn-sm btn-outline-warning" title="Archive">
+                                            <span class="material-icons fs-6">archive</span>
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </div>
+</section>

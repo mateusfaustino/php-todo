@@ -1,0 +1,382 @@
+<?php
+/**
+ * Homepage/Dashboard View
+ * Modern dashboard with statistics and quick access
+ */
+?>
+<!-- Hero Section -->
+<section class="bg-gradient-primary text-white py-5 mb-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">Welcome to Todo App</h1>
+                <p class="lead mb-4">Organize your tasks, manage projects, and stay productive with our intuitive task management system.</p>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="/tasks/create" class="btn btn-light btn-lg d-flex align-items-center gap-2">
+                        <span class="material-icons">add</span>
+                        New Task
+                    </a>
+                    <a href="/projects/create" class="btn btn-outline-light btn-lg d-flex align-items-center gap-2">
+                        <span class="material-icons">folder</span>
+                        New Project
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 d-none d-lg-block text-center">
+                <span class="material-icons" style="font-size: 10rem; opacity: 0.3;">check_circle</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Cards -->
+<section class="container mb-5">
+    <div class="row g-4">
+        <!-- Total Tasks -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="/tasks" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <span class="material-icons text-primary fs-2">task</span>
+                        </div>
+                        <h3 class="mb-1"><?= $stats['tasks'] ?></h3>
+                        <small class="text-muted">Total Tasks</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- To Do -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="/tasks/by-status?status=TODO" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center">
+                        <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <span class="material-icons text-info fs-2">radio_button_unchecked</span>
+                        </div>
+                        <h3 class="mb-1"><?= $stats['todo'] ?></h3>
+                        <small class="text-muted">To Do</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- In Progress -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="/tasks/by-status?status=IN_PROGRESS" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center">
+                        <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <span class="material-icons text-warning fs-2">timelapse</span>
+                        </div>
+                        <h3 class="mb-1"><?= $stats['inProgress'] ?></h3>
+                        <small class="text-muted">In Progress</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Completed -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="/tasks/by-status?status=DONE" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center">
+                        <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <span class="material-icons text-success fs-2">check_circle</span>
+                        </div>
+                        <h3 class="mb-1"><?= $stats['completed'] ?></h3>
+                        <small class="text-muted">Completed</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Projects -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="/projects" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center">
+                        <div class="bg-secondary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <span class="material-icons text-secondary fs-2">folder</span>
+                        </div>
+                        <h3 class="mb-1"><?= $stats['projects'] ?></h3>
+                        <small class="text-muted">Projects</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Lists -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="/lists" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center">
+                        <div class="bg-dark bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <span class="material-icons text-dark fs-2">list</span>
+                        </div>
+                        <h3 class="mb-1"><?= $stats['lists'] ?></h3>
+                        <small class="text-muted">Lists</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Main Dashboard Content -->
+<section class="container mb-5">
+    <div class="row g-4">
+        <!-- Left Column: Tasks Overview -->
+        <div class="col-lg-8">
+            <!-- Overdue Tasks Alert -->
+            <?php if ($stats['overdue'] > 0): ?>
+                <div class="alert alert-danger d-flex align-items-center mb-4">
+                    <span class="material-icons me-2">warning</span>
+                    <div>
+                        <strong>Attention!</strong> You have <?= $stats['overdue'] ?> overdue task<?= $stats['overdue'] > 1 ? 's' : '' ?>.
+                        <a href="/tasks/overdue" class="alert-link">View overdue tasks</a>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom-0 pt-4">
+                    <h5 class="mb-0 d-flex align-items-center gap-2">
+                        <span class="material-icons text-primary">flash_on</span>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6 col-md-3">
+                            <a href="/tasks/create" class="btn btn-outline-primary w-100 d-flex flex-column align-items-center gap-2 py-3">
+                                <span class="material-icons fs-2">add_task</span>
+                                <small>New Task</small>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="/projects/create" class="btn btn-outline-secondary w-100 d-flex flex-column align-items-center gap-2 py-3">
+                                <span class="material-icons fs-2">create_new_folder</span>
+                                <small>New Project</small>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="/lists/create" class="btn btn-outline-info w-100 d-flex flex-column align-items-center gap-2 py-3">
+                                <span class="material-icons fs-2">playlist_add</span>
+                                <small>New List</small>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="/tags/create" class="btn btn-outline-warning w-100 d-flex flex-column align-items-center gap-2 py-3">
+                                <span class="material-icons fs-2">new_label</span>
+                                <small>New Tag</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Tasks -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom-0 pt-4 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 d-flex align-items-center gap-2">
+                        <span class="material-icons text-primary">history</span>
+                        Recent Tasks
+                    </h5>
+                    <a href="/tasks" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <?php if (empty($recentTasks)): ?>
+                        <div class="text-center py-5">
+                            <span class="material-icons text-muted" style="font-size: 3rem;">inbox</span>
+                            <p class="text-muted mt-2">No tasks yet. Create your first task!</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="list-group list-group-flush">
+                            <?php foreach ($recentTasks as $task): ?>
+                                <div class="list-group-item p-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div>
+                                            <?php if ($task->isCompleted()): ?>
+                                                <span class="material-icons text-success">check_circle</span>
+                                            <?php else: ?>
+                                                <a href="/tasks/complete?id=<?= $task->getId() ?>" class="text-decoration-none">
+                                                    <span class="material-icons text-muted">radio_button_unchecked</span>
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 <?= $task->isCompleted() ? 'text-decoration-line-through text-muted' : '' ?>">
+                                                <?= htmlspecialchars($task->getTitle()) ?>
+                                            </h6>
+                                            <small class="text-muted">
+                                                <span class="material-icons fs-6">list</span>
+                                                <?= htmlspecialchars($task->getList()->getName()) ?>
+                                                <?php if ($task->getDueDate()): ?>
+                                                    <span class="ms-2">
+                                                        <span class="material-icons fs-6">event</span>
+                                                        <?= $task->getDueDate()->format('M d, Y') ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </small>
+                                        </div>
+                                        <div>
+                                            <?php
+                                            $priorityColors = [
+                                                'LOW' => 'bg-success',
+                                                'MEDIUM' => 'bg-info',
+                                                'HIGH' => 'bg-warning',
+                                                'URGENT' => 'bg-danger'
+                                            ];
+                                            $priorityColor = $priorityColors[$task->getPriority()->value] ?? 'bg-secondary';
+                                            ?>
+                                            <span class="badge <?= $priorityColor ?>"><?= $task->getPriority()->value ?></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Sidebar -->
+        <div class="col-lg-4">
+            <!-- Progress Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom-0 pt-4">
+                    <h5 class="mb-0 d-flex align-items-center gap-2">
+                        <span class="material-icons text-primary">donut_large</span>
+                        Progress
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <?php
+                    $total = $stats['tasks'];
+                    $completed = $stats['completed'];
+                    $percentage = $total > 0 ? round(($completed / $total) * 100) : 0;
+                    ?>
+                    <div class="text-center mb-3">
+                        <div class="position-relative d-inline-block">
+                            <svg width="120" height="120" viewBox="0 0 120 120">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="#e9ecef" stroke-width="10"/>
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="#28a745" stroke-width="10"
+                                        stroke-dasharray="<?= 314 * $percentage / 100 ?> 314"
+                                        stroke-linecap="round" transform="rotate(-90 60 60)"/>
+                            </svg>
+                            <div class="position-absolute top-50 start-50 translate-middle">
+                                <span class="h3 mb-0"><?= $percentage ?>%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-center text-muted mb-0">
+                        <?= $completed ?> of <?= $total ?> tasks completed
+                    </p>
+                </div>
+            </div>
+
+            <!-- Overdue Tasks -->
+            <?php if (!empty($overdueTasks)): ?>
+                <div class="card border-0 shadow-sm mb-4 border-start border-danger border-4">
+                    <div class="card-header bg-white border-bottom-0 pt-4">
+                        <h5 class="mb-0 d-flex align-items-center gap-2 text-danger">
+                            <span class="material-icons">warning</span>
+                            Overdue
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            <?php foreach ($overdueTasks as $task): ?>
+                                <a href="/tasks/show?id=<?= $task->getId() ?>" class="list-group-item list-group-item-action p-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1"><?= htmlspecialchars($task->getTitle()) ?></h6>
+                                            <small class="text-danger">
+                                                <span class="material-icons fs-6">event</span>
+                                                Due <?= $task->getDueDate()->format('M d, Y') ?>
+                                            </small>
+                                        </div>
+                                        <span class="material-icons text-danger">chevron_right</span>
+                                    </div>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-top-0 text-center">
+                        <a href="/tasks/overdue" class="btn btn-sm btn-outline-danger">View All Overdue</a>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <!-- In Progress Tasks -->
+            <?php if (!empty($inProgressTasks)): ?>
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-white border-bottom-0 pt-4">
+                        <h5 class="mb-0 d-flex align-items-center gap-2">
+                            <span class="material-icons text-warning">timelapse</span>
+                            In Progress
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            <?php foreach ($inProgressTasks as $task): ?>
+                                <a href="/tasks/show?id=<?= $task->getId() ?>" class="list-group-item list-group-item-action p-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1"><?= htmlspecialchars($task->getTitle()) ?></h6>
+                                            <small class="text-muted">
+                                                <span class="material-icons fs-6">list</span>
+                                                <?= htmlspecialchars($task->getList()->getName()) ?>
+                                            </small>
+                                        </div>
+                                        <span class="material-icons text-muted">chevron_right</span>
+                                    </div>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <!-- Tags Cloud -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom-0 pt-4">
+                    <h5 class="mb-0 d-flex align-items-center gap-2">
+                        <span class="material-icons text-primary">label</span>
+                        Tags
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <?php if ($stats['tags'] === 0): ?>
+                        <p class="text-muted text-center mb-0">No tags created yet</p>
+                    <?php else: ?>
+                        <div class="d-flex flex-wrap gap-2">
+                            <?php foreach ($tags as $tag): ?>
+                                <a href="/tags/show?id=<?= $tag->getId() ?>" class="badge text-decoration-none" style="background-color: <?= htmlspecialchars($tag->getColor()) ?>; font-size: 0.9rem;">
+                                    <?= htmlspecialchars($tag->getName()) ?>
+                                    <span class="ms-1">(<?= $tag->getTasks()->count() ?>)</span>
+                                </a>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+</style>

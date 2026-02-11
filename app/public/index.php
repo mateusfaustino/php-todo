@@ -23,7 +23,11 @@ $routes = [
 
 $routes = [
     ...$routes,
-    ...routes('auth')
+    ...routes('auth'),
+    ...routes('project'),
+    ...routes('task'),
+    ...routes('todolist'),
+    ...routes('tag'),
 ];
 
 if (false === isset($routes[$url])) {

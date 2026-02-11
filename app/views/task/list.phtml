@@ -1,0 +1,172 @@
+<?php
+/**
+ * Task List View
+ * Displays all tasks with filtering and actions
+ */
+?>
+<section class="container my-5">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+        <div>
+            <h1 class="d-flex align-items-center gap-2 mb-1">
+                <span class="material-icons fs-1">task</span>
+                Tasks
+            </h1>
+            <p class="text-muted mb-0">Manage your tasks and stay organized</p>
+        </div>
+        <a href="/tasks/create" class="btn btn-primary d-flex align-items-center gap-2">
+            <span class="material-icons">add</span>
+            New Task
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <?php if (isset($stats)): ?>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm bg-primary bg-opacity-10">
+                <div class="card-body text-center">
+                    <h3 class="mb-1"><?= $stats['total'] ?? 0 ?></h3>
+                    <small class="text-muted">Total</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm bg-success bg-opacity-10">
+                <div class="card-body text-center">
+                    <h3 class="mb-1"><?= $stats['completed'] ?? 0 ?></h3>
+                    <small class="text-muted">Completed</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm bg-warning bg-opacity-10">
+                <div class="card-body text-center">
+                    <h3 class="mb-1"><?= $stats['in_progress'] ?? 0 ?></h3>
+                    <small class="text-muted">In Progress</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm bg-info bg-opacity-10">
+                <div class="card-body text-center">
+                    <h3 class="mb-1"><?= $stats['todo'] ?? 0 ?></h3>
+                    <small class="text-muted">To Do</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Filter Tabs -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link <?= !isset($filter) ? 'active' : '' ?>" href="/tasks">All Tasks</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <?= isset($filter) && str_contains($filter, 'TODO') ? 'active' : '' ?>" href="/tasks/by-status?status=TODO">To Do</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link <?= isset($filter) && str_contains($filter, 'IN_PROGRESS') ? 'active' : '' ?>" href="/tasks/by-status?status=IN_PROGRESS">In Progress</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-danger <?= isset($filter) && str_contains($filter, 'Overdue') ? 'active' : '' ?>" href="/tasks/overdue">Overdue</a>
+        </li>
+    </ul>
+
+    <!-- Tasks List -->
+    <div class="card border-0 shadow">
+        <div class="card-header bg-white border-bottom py-3">
+            <h5 class="mb-0"><?= isset($filter) ? htmlspecialchars($filter) : 'All Tasks' ?></h5>
+        </div>
+        <div class="card-body p-0">
+            <?php if (empty($tasks)): ?>
+                <div class="text-center py-5">
+                    <span class="material-icons text-muted" style="font-size: 4rem;">check_circle</span>
+                    <h5 class="mt-3 text-muted">No tasks found</h5>
+                    <p class="text-muted">Create your first task to get started</p>
+                    <a href="/tasks/create" class="btn btn-primary">Create Task</a>
+                </div>
+            <?php else: ?>
+                <div class="list-group list-group-flush">
+                    <?php foreach ($tasks as $task): ?>
+                        <div class="list-group-item p-3">
+                            <div class="d-flex align-items-start gap-3">
+                                <!-- Completion Checkbox -->
+                                <div class="pt-1">
+                                    <?php if ($task->isCompleted()): ?>
+                                        <span class="material-icons text-success fs-3">check_circle</span>
+                                    <?php else: ?>
+                                        <a href="/tasks/complete?id=<?= $task->getId() ?>" class="text-decoration-none">
+                                            <span class="material-icons text-muted fs-3">radio_button_unchecked</span>
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
+
+                                <!-- Task Content -->
+                                <div class="flex-grow-1">
+                                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
+                                        <div>
+                                            <h6 class="mb-1 <?= $task->isCompleted() ? 'text-decoration-line-through text-muted' : '' ?>">
+                                                <?= htmlspecialchars($task->getTitle()) ?>
+                                            </h6>
+                                            <p class="text-muted mb-1 small"><?= htmlspecialchars($task->getDescription() ?? '') ?></p>
+                                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                                <!-- Priority Badge -->
+                                                <?php
+                                                $priorityColors = [
+                                                    'LOW' => 'bg-success',
+                                                    'MEDIUM' => 'bg-info',
+                                                    'HIGH' => 'bg-warning',
+                                                    'URGENT' => 'bg-danger'
+                                                ];
+                                                $priorityColor = $priorityColors[$task->getPriority()->value] ?? 'bg-secondary';
+                                                ?>
+                                                <span class="badge <?= $priorityColor ?>"><?= $task->getPriority()->value ?></span>
+
+                                                <!-- Status Badge -->
+                                                <?php if ($task->isCompleted()): ?>
+                                                    <span class="badge bg-success">Completed</span>
+                                                <?php elseif ($task->isOverdue()): ?>
+                                                    <span class="badge bg-danger">Overdue</span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-secondary"><?= $task->getStatus()->value ?></span>
+                                                <?php endif; ?>
+
+                                                <!-- Due Date -->
+                                                <?php if ($task->getDueDate()): ?>
+                                                    <small class="text-muted">
+                                                        <span class="material-icons fs-6">event</span>
+                                                        <?= $task->getDueDate()->format('M d, Y') ?>
+                                                    </small>
+                                                <?php endif; ?>
+
+                                                <!-- List -->
+                                                <small class="text-muted">
+                                                    <span class="material-icons fs-6">list</span>
+                                                    <?= htmlspecialchars($task->getList()->getName()) ?>
+                                                </small>
+                                            </div>
+                                        </div>
+
+                                        <!-- Actions -->
+                                        <div class="btn-group">
+                                            <a href="/tasks/show?id=<?= $task->getId() ?>" class="btn btn-sm btn-outline-primary" title="View">
+                                                <span class="material-icons fs-6">visibility</span>
+                                            </a>
+                                            <a href="/tasks/edit?id=<?= $task->getId() ?>" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                                <span class="material-icons fs-6">edit</span>
+                                            </a>
+                                            <a href="/tasks/delete?id=<?= $task->getId() ?>" class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Are you sure?')">
+                                                <span class="material-icons fs-6">delete</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</section>

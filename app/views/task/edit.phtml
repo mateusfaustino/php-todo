@@ -1,0 +1,107 @@
+<?php
+/**
+ * Task Edit View
+ * Form to edit an existing task
+ */
+?>
+<section class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white border-bottom py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="/tasks" class="btn btn-sm btn-outline-secondary">
+                            <span class="material-icons">arrow_back</span>
+                        </a>
+                        <h5 class="mb-0">Edit Task</h5>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <?php if (isset($error)): ?>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span class="material-icons">error</span>
+                            <?= htmlspecialchars($error) ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    <?php endif; ?>
+
+                    <form action="/tasks/update" method="POST">
+                        <input type="hidden" name="id" value="<?= $task->getId() ?>">
+
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Task Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" required
+                                   value="<?= htmlspecialchars($task->getTitle()) ?>" maxlength="200">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"><?= htmlspecialchars($task->getDescription() ?? '') ?></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="list_id" class="form-label">List</label>
+                                <input type="text" class="form-control" value="<?= htmlspecialchars($task->getList()->getName()) ?>" disabled>
+                                <small class="text-muted">List cannot be changed</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="priority" class="form-label">Priority</label>
+                                <select class="form-select" id="priority" name="priority">
+                                    <?php foreach ($priorities as $priority): ?>
+                                        <option value="<?= $priority->value ?>" <?= $task->getPriority()->value === $priority->value ? 'selected' : '' ?>>
+                                            <?= $priority->value ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select" id="status" name="status">
+                                    <?php foreach ($statuses as $status): ?>
+                                        <option value="<?= $status->value ?>" <?= $task->getStatus()->value === $status->value ? 'selected' : '' ?>>
+                                            <?= $status->value ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="due_date" class="form-label">Due Date</label>
+                                <input type="date" class="form-control" id="due_date" name="due_date"
+                                       value="<?= $task->getDueDate() ? $task->getDueDate()->format('Y-m-d') : '' ?>">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Completion</label>
+                            <div>
+                                <?php if ($task->isCompleted()): ?>
+                                    <span class="badge bg-success">Completed</span>
+                                    <small class="text-muted ms-2">on <?= $task->getCompletedAt()->format('M d, Y H:i') ?></small>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary">Not Completed</span>
+                                    <a href="/tasks/complete?id=<?= $task->getId() ?>" class="btn btn-sm btn-success ms-2">
+                                        <span class="material-icons fs-6">check</span> Mark Complete
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="/tasks" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <span class="material-icons">save</span>
+                                Update Task
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

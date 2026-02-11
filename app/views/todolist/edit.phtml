@@ -1,0 +1,83 @@
+<?php
+/**
+ * TodoList Edit View
+ * Form to edit an existing todo list
+ */
+?>
+<section class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white border-bottom py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="/lists" class="btn btn-sm btn-outline-secondary">
+                            <span class="material-icons">arrow_back</span>
+                        </a>
+                        <h5 class="mb-0">Edit List</h5>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <?php if (isset($error)): ?>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span class="material-icons">error</span>
+                            <?= htmlspecialchars($error) ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    <?php endif; ?>
+
+                    <form action="/lists/update" method="POST">
+                        <input type="hidden" name="id" value="<?= $list->getId() ?>">
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label">List Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" required
+                                   value="<?= htmlspecialchars($list->getName()) ?>" maxlength="100">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="project_id" class="form-label">Project (Optional)</label>
+                            <select class="form-select" id="project_id" name="project_id">
+                                <option value="">No Project</option>
+                                <?php foreach ($projects as $project): ?>
+                                    <option value="<?= $project->getId() ?>" <?= $list->getProject() && $list->getProject()->getId() === $project->getId() ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($project->getName()) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="order" class="form-label">Order</label>
+                            <input type="number" class="form-control" id="order" name="order" value="<?= $list->getOrder() ?>" min="0">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Status</label>
+                            <div>
+                                <?php if ($list->isArchived()): ?>
+                                    <span class="badge bg-secondary">Archived</span>
+                                    <a href="/lists/unarchive?id=<?= $list->getId() ?>" class="btn btn-sm btn-outline-success ms-2">
+                                        <span class="material-icons fs-6">unarchive</span> Unarchive
+                                    </a>
+                                <?php else: ?>
+                                    <span class="badge bg-success">Active</span>
+                                    <a href="/lists/archive?id=<?= $list->getId() ?>" class="btn btn-sm btn-outline-warning ms-2">
+                                        <span class="material-icons fs-6">archive</span> Archive
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="/lists" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <span class="material-icons">save</span>
+                                Update List
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

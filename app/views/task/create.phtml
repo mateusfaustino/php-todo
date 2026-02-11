@@ -1,0 +1,83 @@
+<?php
+/**
+ * Task Create View
+ * Form to create a new task
+ */
+?>
+<section class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white border-bottom py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="/tasks" class="btn btn-sm btn-outline-secondary">
+                            <span class="material-icons">arrow_back</span>
+                        </a>
+                        <h5 class="mb-0">Create New Task</h5>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <?php if (isset($error)): ?>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span class="material-icons">error</span>
+                            <?= htmlspecialchars($error) ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    <?php endif; ?>
+
+                    <form action="/tasks/store" method="POST">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Task Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" required
+                                   placeholder="Enter task title" maxlength="200">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"
+                                      placeholder="Enter task description (optional)"></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="list_id" class="form-label">List <span class="text-danger">*</span></label>
+                                <select class="form-select" id="list_id" name="list_id" required>
+                                    <option value="">Select a list</option>
+                                    <?php foreach ($lists as $list): ?>
+                                        <option value="<?= $list->getId() ?>">
+                                            <?= htmlspecialchars($list->getName()) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="priority" class="form-label">Priority</label>
+                                <select class="form-select" id="priority" name="priority">
+                                    <?php foreach ($priorities as $priority): ?>
+                                        <option value="<?= $priority->value ?>" <?= $priority->value === 'MEDIUM' ? 'selected' : '' ?>>
+                                            <?= $priority->value ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="due_date" class="form-label">Due Date</label>
+                            <input type="date" class="form-control" id="due_date" name="due_date">
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="/tasks" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <span class="material-icons">save</span>
+                                Create Task
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
